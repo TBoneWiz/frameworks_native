@@ -182,9 +182,7 @@ static inline bool sourcesMatchMask(uint32_t sources, uint32_t sourceMask) {
 // Returns true if the pointer should be reported as being down given the specified
 // button states.  This determines whether the event is reported as a touch event.
 static bool isPointerDown(int32_t buttonState) {
-    return buttonState &
-            (AMOTION_EVENT_BUTTON_PRIMARY | AMOTION_EVENT_BUTTON_SECONDARY
-                    | AMOTION_EVENT_BUTTON_TERTIARY);
+    return buttonState & AMOTION_EVENT_BUTTON_PRIMARY;
 }
 
 static float calculateCommonVector(float a, float b) {
@@ -219,10 +217,13 @@ static void synthesizeButtonKeys(InputReaderContext* context, int32_t action,
         uint32_t policyFlags, int32_t lastButtonState, int32_t currentButtonState) {
     synthesizeButtonKey(context, action, when, deviceId, source, policyFlags,
             lastButtonState, currentButtonState,
-            AMOTION_EVENT_BUTTON_BACK, AKEYCODE_BACK);
+            AMOTION_EVENT_BUTTON_BACK, AKEYCODE_BACK); // Default mapping
     synthesizeButtonKey(context, action, when, deviceId, source, policyFlags,
             lastButtonState, currentButtonState,
-            AMOTION_EVENT_BUTTON_FORWARD, AKEYCODE_FORWARD);
+            AMOTION_EVENT_BUTTON_FORWARD, AKEYCODE_HOME); //Map forward & Samsung thumb button to Home 
+    synthesizeButtonKey(context, action, when, deviceId, source, policyFlags,
+            lastButtonState, currentButtonState,
+            AMOTION_EVENT_BUTTON_TERTIARY, AKEYCODE_APP_SWITCH); //Map wheel & middle button to Recents 
 }
 
 
@@ -1210,6 +1211,8 @@ void CursorButtonAccumulator::reset(InputDevice* device) {
     mBtnForward = device->isKeyPressed(BTN_FORWARD);
     mBtnExtra = device->isKeyPressed(BTN_EXTRA);
     mBtnTask = device->isKeyPressed(BTN_TASK);
+    mBtnAction = device->isKeyPressed(BTN_ACTION);
+    mCurrentHidUsage = 0;
 }
 
 void CursorButtonAccumulator::clearButtons() {
@@ -1221,35 +1224,53 @@ void CursorButtonAccumulator::clearButtons() {
     mBtnForward = 0;
     mBtnExtra = 0;
     mBtnTask = 0;
+    mBtnAction = 0;
 }
 
 void CursorButtonAccumulator::process(const RawEvent* rawEvent) {
-    if (rawEvent->type == EV_KEY) {
-        switch (rawEvent->code) {
-        case BTN_LEFT:
-            mBtnLeft = rawEvent->value;
+    switch (rawEvent->type) {
+        case EV_KEY: {
+            int32_t usageCode = mCurrentHidUsage;
+            mCurrentHidUsage = 0;
+            if (rawEvent->code == BTN_LEFT) {
+                mBtnLeft = rawEvent->value;
+                break;
+            }   else if (rawEvent->code == BTN_RIGHT) {
+                mBtnRight = rawEvent->value;
+                break;
+            }   else if (rawEvent->code == BTN_MIDDLE) {
+                mBtnMiddle = rawEvent->value;
+                break;
+            }   else if (rawEvent->code == BTN_BACK) {
+                mBtnBack = rawEvent->value;
+                break;
+            }   else if (rawEvent->code == BTN_SIDE) {
+                mBtnSide = rawEvent->value;
+                break;
+            }   else if (rawEvent->code == BTN_FORWARD) {
+                mBtnForward = rawEvent->value;
+                break;
+            }   else if (rawEvent->code == BTN_EXTRA) {
+                mBtnExtra = rawEvent->value;
+                break;
+            }   else if (rawEvent->code == BTN_TASK) {
+                mBtnTask = rawEvent->value;
+                break;
+            }   else if (rawEvent->code == BTN_ACTION && usageCode != 0) { // Samsung thumb button
+                mBtnAction = rawEvent->value;
+                break;
+            }
+        }
+        case EV_MSC: {
+            if (rawEvent->code == MSC_SCAN) {
+                mCurrentHidUsage = rawEvent->value;
+            }
             break;
-        case BTN_RIGHT:
-            mBtnRight = rawEvent->value;
-            break;
-        case BTN_MIDDLE:
-            mBtnMiddle = rawEvent->value;
-            break;
-        case BTN_BACK:
-            mBtnBack = rawEvent->value;
-            break;
-        case BTN_SIDE:
-            mBtnSide = rawEvent->value;
-            break;
-        case BTN_FORWARD:
-            mBtnForward = rawEvent->value;
-            break;
-        case BTN_EXTRA:
-            mBtnExtra = rawEvent->value;
-            break;
-        case BTN_TASK:
-            mBtnTask = rawEvent->value;
-            break;
+        }
+        case EV_SYN: {
+            if (rawEvent->code == SYN_REPORT) {
+                mCurrentHidUsage = 0;
+            }
         }
     }
 }
@@ -1260,7 +1281,7 @@ uint32_t CursorButtonAccumulator::getButtonState() const {
         result |= AMOTION_EVENT_BUTTON_PRIMARY;
     }
     if (mBtnRight) {
-        result |= AMOTION_EVENT_BUTTON_SECONDARY;
+        result |= AMOTION_EVENT_BUTTON_BACK;
     }
     if (mBtnMiddle) {
         result |= AMOTION_EVENT_BUTTON_TERTIARY;
@@ -1268,7 +1289,7 @@ uint32_t CursorButtonAccumulator::getButtonState() const {
     if (mBtnBack || mBtnSide) {
         result |= AMOTION_EVENT_BUTTON_BACK;
     }
-    if (mBtnForward || mBtnExtra) {
+    if (mBtnForward || mBtnAction) {
         result |= AMOTION_EVENT_BUTTON_FORWARD;
     }
     return result;

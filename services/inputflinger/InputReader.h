@@ -43,6 +43,9 @@
 // which the delay will be truncated.
 #define MAX_VIBRATE_PATTERN_DELAY_NSECS (1000000 * 1000000000LL)
 
+// Defines code sent by thumb button on Samsung Action mouse
+#define BTN_ACTION 254
+
 namespace android {
 
 class InputDevice;
@@ -696,7 +699,8 @@ private:
     bool mBtnForward;
     bool mBtnExtra;
     bool mBtnTask;
-
+    bool mBtnAction; // definition for Samsung Action mouse thumb button
+    int32_t mCurrentHidUsage; // most recent HID usage seen this packet, or 0 if none
     void clearButtons();
 };
 
