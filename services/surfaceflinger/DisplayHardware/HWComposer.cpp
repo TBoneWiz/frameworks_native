@@ -1055,7 +1055,6 @@ public:
         }
     }
     virtual void setDim() {
-        setSkip(false);
         getLayer()->flags |= 0x80000000;
     }
     virtual void setIsCursorLayerHint(bool isCursor) {
@@ -1126,7 +1125,7 @@ public:
     virtual void setBuffer(const sp<GraphicBuffer>& buffer) {
         if (buffer == 0 || buffer->handle == 0) {
             getLayer()->compositionType = HWC_FRAMEBUFFER;
-            getLayer()->flags |= HWC_SKIP_LAYER;
+            getLayer()->flags |=  (getLayer()->flags & 0x80000000) ? 0 : HWC_SKIP_LAYER;
             getLayer()->handle = 0;
         } else {
             if (getLayer()->compositionType == HWC_SIDEBAND) {
