@@ -1274,7 +1274,7 @@ void SurfaceFlinger::setUpHWComposer() {
                     const sp<Layer>& layer(currentLayers[i]);
                     layer->setPerFrameData(hw, *cur);
                     setOrientationEventControl(freezeSurfacePresent,id);
-                    if(!strncmp(layer->getName(), "SurfaceView",
+                    if(!strncmp(layer->getName().string(), "SurfaceView",
                                 11)) {
                         lastSurfaceViewLayer = layer;
                     }
