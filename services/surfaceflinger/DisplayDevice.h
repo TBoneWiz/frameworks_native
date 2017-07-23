@@ -206,6 +206,9 @@ private:
     // list of visible layers on that display
     Vector< sp<Layer> > mVisibleLayersSortedByZ;
 
+    // list of visible layers on that display in last update
+    Vector< sp<Layer> > mVisibleLayersSortedByZLast;
+
     // Whether we have a visible secure layer on this display
     bool mSecureLayerVisible;
 
