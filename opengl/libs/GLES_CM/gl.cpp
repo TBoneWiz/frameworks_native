@@ -115,7 +115,7 @@ GL_API void GL_APIENTRY glWeightPointerOESBounds(GLint size, GLenum type,
             :                                                   \
             : [tls] "J"(TLS_SLOT_OPENGL_API*4),                 \
               [api] "J"(__builtin_offsetof(gl_hooks_t, gl._api))    \
-            : "r0", "r1", "r2", "r3", "r12"                     \
+            : "r12"                                             \
             );
 
 #elif defined(__aarch64__)
@@ -133,7 +133,7 @@ GL_API void GL_APIENTRY glWeightPointerOESBounds(GLint size, GLenum type,
             :                                                       \
             : [tls] "i" (TLS_SLOT_OPENGL_API * sizeof(void*)),      \
               [api] "i" (__builtin_offsetof(gl_hooks_t, gl._api))   \
-            : "x0", "x1", "x2", "x3", "x4", "x5", "x6", "x7", "x16" \
+            : "x16"                                                 \
         );
 
 #elif defined(__i386__)
@@ -171,9 +171,7 @@ GL_API void GL_APIENTRY glWeightPointerOESBounds(GLint size, GLenum type,
             : [fn] "=r" (fn)                                        \
             : [tls] "i" (TLS_SLOT_OPENGL_API*sizeof(void*)),        \
               [api] "i" (__builtin_offsetof(gl_hooks_t, gl._api))   \
-            : "cc", "%rdi", "%rsi", "%rdx", "%rcx", "%r8", "%r9",   \
-              "%xmm0", "%xmm1", "%xmm2", "%xmm3", "%xmm4", "%xmm5", \
-              "%xmm6", "%xmm7"                                      \
+            : "cc"                                                  \
             );
 
 #elif defined(__mips64)
@@ -206,7 +204,7 @@ GL_API void GL_APIENTRY glWeightPointerOESBounds(GLint size, GLenum type,
           [v0] "=&r"(_v0)                                     \
         : [OPENGL_API] "I"(TLS_SLOT_OPENGL_API*sizeof(void*)),\
           [API] "I"(__builtin_offsetof(gl_hooks_t, gl._api))  \
-        : "$4", "$5", "$6", "$7", "$8", "$9", "$10", "$11"    \
+        :                                                     \
         );
 
 #elif defined(__mips__)
@@ -240,7 +238,7 @@ GL_API void GL_APIENTRY glWeightPointerOESBounds(GLint size, GLenum type,
               [v0] "=&r"(_v0)                                    \
             : [OPENGL_API] "I"(TLS_SLOT_OPENGL_API*4),           \
               [API] "I"(__builtin_offsetof(gl_hooks_t, gl._api)) \
-            : "$4", "$5", "$6", "$7"                             \
+            :                                                    \
             );
 
 #endif
